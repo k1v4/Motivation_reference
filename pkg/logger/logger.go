@@ -74,4 +74,8 @@ func init() {
 		Writer:   []io.Writer{allFile, os.Stdout},
 		LogLevel: logrus.AllLevels,
 	})
+
+	l.SetLevel(logrus.TraceLevel)
+
+	e = logrus.NewEntry(l)
 }
