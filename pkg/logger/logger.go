@@ -58,12 +58,12 @@ func init() {
 		FullTimestamp: true,
 	})
 
-	err := os.Mkdir("logs", 0644)
+	err := os.MkdirAll("../logs", 0644)
 	if err != nil {
 		log.Fatalf("failed to make dir: %v", err)
 	}
 
-	allFile, err := os.OpenFile("logs/all.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	allFile, err := os.OpenFile("../logs/all.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Fatalf("failed to open file: %v", err)
 	}

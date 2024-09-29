@@ -12,6 +12,9 @@ type Config struct {
 		Port   string `yaml:"port" env-default:"8080"`
 		BindIp string `yaml:"bind_ip" env-default:"127.0.1"`
 	} `yaml:"listen"`
+	Db struct {
+		ConnString string `yaml:"conn_string"`
+	} `yaml:"DB"`
 }
 
 var once sync.Once
@@ -24,7 +27,7 @@ func GetConfig() *Config {
 
 		cfg = &Config{}
 
-		if err := cleanenv.ReadConfig("cfg/cfg.yml", cfg); err != nil {
+		if err := cleanenv.ReadConfig("../config/config.yml", cfg); err != nil {
 			desc, _ := cleanenv.GetDescription(cfg, nil)
 			l.Fatalf("%s %v", desc, err)
 		}
