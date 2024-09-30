@@ -124,13 +124,11 @@ func (s *Storage) UpgradePhrase(id int64, newText string) (*Phrase, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	fmt.Println("prepared")
 	_, err = stmt.Exec(newText, id)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	fmt.Println("executed")
 	phrase, err := s.GetPhrase(id)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)

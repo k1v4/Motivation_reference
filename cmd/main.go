@@ -1,7 +1,7 @@
 package main
 
 import (
-	"Motivation_reference/internal/handlers"
+	"Motivation_reference/internal/handlers/phrases"
 	"Motivation_reference/internal/storage/postgresql"
 	"Motivation_reference/pkg/cfg"
 	logger "Motivation_reference/pkg/logger"
@@ -23,20 +23,12 @@ func main() {
 	// DELETE "/api/v1/phrases/{id}"
 	// PATCH "/api/v1/phrases/{id}"
 
-	st, err := postgresql.New(cfg.Db.ConnString)
+	storage, err := postgresql.New(cfg.Db.ConnString)
 	if err != nil {
 		logger.Fatal(err)
 	}
-
-	ph, err := st.UpgradePhrase(4, "newText")
-	if err != nil {
-		logger.Fatal(err)
-	}
-
-	fmt.Println(ph)
-
-	http.HandleFunc("/api/v1/phrases", handlers.HandlerWithoutId)
-	http.HandleFunc("/api/v1/phrases/{id}", handlers.HandlerWithId)
+	http.HandleFunc("/api/v1/phrases", phrases.HandlerWithoutId(logger, storage))
+	http.HandleFunc("/api/v1/phrases/{id}", phrases.HandlerWithId(logger, storage))
 
 	logger.Infof("server started at %s:%s", cfg.Listen.BindIp, cfg.Listen.Port)
 
