@@ -27,6 +27,7 @@ func main() {
 	if err != nil {
 		logger.Fatal(err)
 	}
+
 	http.HandleFunc("/api/v1/phrases", phrases.HandlerWithoutId(logger, storage))
 	http.HandleFunc("/api/v1/phrases/{id}", phrases.HandlerWithId(logger, storage))
 
