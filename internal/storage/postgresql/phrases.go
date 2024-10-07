@@ -7,8 +7,9 @@ import (
 )
 
 type Phrase struct {
-	Id   int64  `json:"id"`
-	Text string `json:"text"`
+	Id         int64  `json:"id"`
+	Text       string `json:"text"`
+	CategoryId int64  `json:"categoryId"`
 }
 
 type Storage struct {
@@ -24,12 +25,13 @@ func New(connString string) (*Storage, error) {
 	}
 	//defer db.Close()
 
+	// создание таблицы категорий
 	stmt, err := db.Prepare(`
-	CREATE TABLE IF NOT EXISTS phrases(
-		id SERIAL PRIMARY KEY,
-		text TEXT NOT NULL UNIQUE);
-	`)
-	// CREATE INDEX IF NOT EXISTS idx_alias ON phrases(text);
+	CREATE TABLE IF NOT EXISTS categories (
+    	id SERIAL PRIMARY KEY,
+    	name VARCHAR(255) NOT NULL
+	);
+`)
 	if err != nil {
 		return nil, fmt.Errorf("%s: failed to prepare: %w", op, err)
 	}
@@ -39,9 +41,28 @@ func New(connString string) (*Storage, error) {
 		return nil, fmt.Errorf("%s: failed to execute: %w", op, err)
 	}
 
+	// создание таблицы фраз
 	stmt, err = db.Prepare(`
-	CREATE INDEX IF NOT EXISTS idx_text ON phrases(text);
-	`)
+	CREATE TABLE IF NOT EXISTS phrases (
+    	id SERIAL PRIMARY KEY,
+    	text TEXT NOT NULL
+);`)
+	if err != nil {
+		return nil, fmt.Errorf("%s: failed to prepare: %w", op, err)
+	}
+
+	_, err = stmt.Exec()
+	if err != nil {
+		return nil, fmt.Errorf("%s: failed to execute: %w", op, err)
+	}
+
+	// создание таблицы для связи М:М
+	stmt, err = db.Prepare(`
+CREATE TABLE IF NOT EXISTS phrase_categories (
+    phrase_id INTEGER REFERENCES phrases(id) ON DELETE CASCADE,
+    category_id INTEGER REFERENCES categories(id) ON DELETE CASCADE,
+    PRIMARY KEY (phrase_id, category_id)
+);`)
 
 	if err != nil {
 		return nil, fmt.Errorf("%s: failed to prepare: %w", op, err)

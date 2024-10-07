@@ -14,14 +14,17 @@ func main() {
 
 	cfg := cfg.GetConfig()
 
-	_ = logger
-	_ = cfg
-
 	// GET "/api/v1/phrases"
 	// GET(one) "/api/v1/phrases/{id}"
 	// POST "/api/v1/phrases"
 	// DELETE "/api/v1/phrases/{id}"
 	// PATCH "/api/v1/phrases/{id}"
+
+	// GET /api/v1/categories
+	// GET(one) "/api/v1/categories/{id}"
+	// POST "/api/v1/categories"
+	// DELETE "/api/v1/categories/{id}"
+	// PATCH "/api/v1/categories/{id}"
 
 	storage, err := postgresql.New(cfg.Db.ConnString)
 	if err != nil {
