@@ -1,6 +1,7 @@
 package main
 
 import (
+	"Motivation_reference/internal/handlers/categories"
 	"Motivation_reference/internal/handlers/phrases"
 	"Motivation_reference/internal/storage/postgresql"
 	"Motivation_reference/pkg/cfg"
@@ -33,6 +34,8 @@ func main() {
 
 	http.HandleFunc("/api/v1/phrases", phrases.HandlerWithoutId(logger, storage))
 	http.HandleFunc("/api/v1/phrases/{id}", phrases.HandlerWithId(logger, storage))
+	http.HandleFunc("/api/v1/categories", categories.HandlerWithoutId(logger, storage))
+	http.HandleFunc("/api/v1/categories/{id}", categories.HandlerWithId(logger, storage))
 
 	logger.Infof("server started at %s:%s", cfg.Listen.BindIp, cfg.Listen.Port)
 
