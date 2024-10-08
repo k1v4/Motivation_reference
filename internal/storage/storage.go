@@ -5,6 +5,6 @@ import (
 )
 
 var (
-	ErrURLNotFound = errors.New("phrase not found")
-	ErrURLExists   = errors.New("this phrase exists")
+	ErrCategoryExist = errors.New("this category already exists")
+	ErrURLExists     = errors.New("this phrase exists")
 )

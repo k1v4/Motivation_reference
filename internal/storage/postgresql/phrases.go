@@ -1,15 +1,16 @@
 package postgresql
 
 import (
+	"Motivation_reference/internal/storage"
 	"database/sql"
+	"errors"
 	"fmt"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 type Phrase struct {
-	Id         int64  `json:"id"`
-	Text       string `json:"text"`
-	CategoryId int64  `json:"categoryId"`
+	Id   int64  `json:"id"`
+	Text string `json:"text"`
 }
 
 type Storage struct {
@@ -29,7 +30,7 @@ func New(connString string) (*Storage, error) {
 	stmt, err := db.Prepare(`
 	CREATE TABLE IF NOT EXISTS categories (
     	id SERIAL PRIMARY KEY,
-    	name VARCHAR(255) NOT NULL
+    	name VARCHAR(255) UNIQUE NOT NULL
 	);
 `)
 	if err != nil {
@@ -45,7 +46,7 @@ func New(connString string) (*Storage, error) {
 	stmt, err = db.Prepare(`
 	CREATE TABLE IF NOT EXISTS phrases (
     	id SERIAL PRIMARY KEY,
-    	text TEXT NOT NULL
+    	text VARCHAR(255) UNIQUE NOT NULL
 );`)
 	if err != nil {
 		return nil, fmt.Errorf("%s: failed to prepare: %w", op, err)
@@ -76,16 +77,24 @@ CREATE TABLE IF NOT EXISTS phrase_categories (
 	return &Storage{db: db}, nil
 }
 
-func (s *Storage) AddPhrase(phraseText string) (int64, error) {
+func (s *Storage) AddPhrase(phraseText, nameCategory string) (int64, int64, error) {
 	const op = "storage.postgresql.AddPhrase"
 
-	var lastInsertedID int64
-	err := s.db.QueryRow("INSERT INTO phrases(text) VALUES ($1) RETURNING id", phraseText).Scan(&lastInsertedID)
+	var lastInsertedPhraseID int64
+	err := s.db.QueryRow("INSERT INTO phrases(text) VALUES ($1) RETURNING id", phraseText).Scan(&lastInsertedPhraseID)
 	if err != nil {
-		return lastInsertedID, fmt.Errorf("%s: %d", op, err)
+		return lastInsertedPhraseID, 0, fmt.Errorf("%s: %d", op, err)
 	}
 
-	return lastInsertedID, nil
+	lastInsertedCategoryID, err := s.AddCategory(nameCategory)
+	if err != nil {
+		if errors.Is(err, storage.ErrURLExists) {
+			return lastInsertedPhraseID, lastInsertedCategoryID, nil
+		}
+		return lastInsertedPhraseID, lastInsertedCategoryID, fmt.Errorf("%s: %d", op, err)
+	}
+
+	return lastInsertedPhraseID, lastInsertedCategoryID, nil
 }
 
 func (s *Storage) GetPhrase(id int64) (*Phrase, error) {

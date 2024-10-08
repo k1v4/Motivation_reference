@@ -11,7 +11,8 @@ import (
 )
 
 type Request struct {
-	Text string `json:"text" validate:"required"`
+	Text         string `json:"text" validate:"required"`
+	NameCategory string `json:"category" validate:"required"`
 }
 
 type Response struct {
@@ -19,7 +20,7 @@ type Response struct {
 }
 
 type addPhrase interface {
-	AddPhrase(phraseText string) (int64, error)
+	AddPhrase(phraseText, nameCategory string) (int64, int64, error)
 }
 
 func New(logger logger.Logger, addPhrase addPhrase, w http.ResponseWriter, r *http.Request) {
@@ -69,20 +70,20 @@ func New(logger logger.Logger, addPhrase addPhrase, w http.ResponseWriter, r *ht
 		return
 	}
 
-	_, err = addPhrase.AddPhrase(req.Text)
+	_, _, err := addPhrase.AddPhrase(req.Text, req.NameCategory)
 	if err != nil {
-		logger.Error("failed to add new addPhrase", err)
+		logger.Error("failed to add new phrase", err)
 
 		w.WriteHeader(http.StatusBadRequest)
 
-		if err := json.NewEncoder(w).Encode(response.Error("failed to add new addPhrase")); err != nil {
+		if err := json.NewEncoder(w).Encode(response.Error("failed to add new phrase")); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 
 		return
 	}
 
-	logger.Info("addPhrase added")
+	logger.Info("phrase added")
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)

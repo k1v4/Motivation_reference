@@ -1,6 +1,10 @@
 package postgresql
 
-import "fmt"
+import (
+	"Motivation_reference/internal/storage"
+	"fmt"
+	"github.com/jackc/pgx/v5/pgconn"
+)
 
 type Category struct {
 	Id   int64  `json:"id"`
@@ -11,8 +15,20 @@ func (s *Storage) AddCategory(name string) (int64, error) {
 	const op = "storage.postgresql.AddCategory"
 
 	var lastInsertedID int64
-	err := s.db.QueryRow("INSERT INTO categories(name) VALUES ($1) RETURNING id", name).Scan(&lastInsertedID)
+	err := s.db.QueryRow(`
+		INSERT INTO categories(name) 
+		VALUES ($1) 
+		ON CONFLICT (name) DO UPDATE
+		SET name = EXCLUDED.name 
+		RETURNING id
+	`, name).Scan(&lastInsertedID)
 	if err != nil {
+		if pgErr, ok := err.(*pgconn.PgError); ok {
+			if pgErr.Code == "23505" {
+				return lastInsertedID, storage.ErrCategoryExist
+			}
+		}
+
 		return lastInsertedID, fmt.Errorf("%s: %d", op, err)
 	}
 

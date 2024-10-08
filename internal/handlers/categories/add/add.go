@@ -71,11 +71,11 @@ func New(logger logger.Logger, addCategory addCategory, w http.ResponseWriter, r
 
 	_, err = addCategory.AddCategory(req.Name)
 	if err != nil {
-		logger.Error("failed to add new category", err)
+		logger.Error("failed to add new category: ", err)
 
 		w.WriteHeader(http.StatusBadRequest)
 
-		if err := json.NewEncoder(w).Encode(response.Error("failed to add new addCategory")); err != nil {
+		if err := json.NewEncoder(w).Encode(response.Error("failed to add new category")); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 
