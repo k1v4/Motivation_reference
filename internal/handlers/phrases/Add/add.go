@@ -70,7 +70,7 @@ func New(logger logger.Logger, addPhrase addPhrase, w http.ResponseWriter, r *ht
 		return
 	}
 
-	_, _, err := addPhrase.AddPhrase(req.Text, req.NameCategory)
+	_, _, err = addPhrase.AddPhrase(req.Text, req.NameCategory)
 	if err != nil {
 		logger.Error("failed to add new phrase", err)
 

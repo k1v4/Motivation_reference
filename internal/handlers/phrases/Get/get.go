@@ -18,6 +18,7 @@ type Response struct {
 
 type getPhrase interface {
 	GetPhrase(id int64) (*postgresql.Phrase, error)
+	GetCategory(id int64) (*postgresql.Category, error)
 }
 
 func New(logger logger.Logger, getPhrase getPhrase, w http.ResponseWriter, r *http.Request) {
@@ -60,6 +61,8 @@ func New(logger logger.Logger, getPhrase getPhrase, w http.ResponseWriter, r *ht
 
 		return
 	}
+
+	logger.Info("got phrase: ", phrase)
 
 	w.WriteHeader(http.StatusOK)
 
