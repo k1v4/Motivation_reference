@@ -12,7 +12,9 @@ import (
 )
 
 type Request struct {
-	Text string `json:"text" validate:"required"`
+	Text            string `json:"text" validate:"required"`
+	CategoryName    string `json:"category" validate:"required"`
+	NewCategoryName string `json:"new_category" validate:"required"`
 }
 
 type Response struct {
@@ -21,7 +23,7 @@ type Response struct {
 }
 
 type updatePhrase interface {
-	UpgradePhrase(id int64, newText string) (*postgresql.Phrase, error)
+	UpgradePhrase(id int64, newText, category, newCategory string) (*postgresql.Phrase, error)
 }
 
 func New(logger logger.Logger, updatePhrase updatePhrase, w http.ResponseWriter, r *http.Request) {
@@ -70,7 +72,7 @@ func New(logger logger.Logger, updatePhrase updatePhrase, w http.ResponseWriter,
 
 	logger.Info("request body decoded")
 
-	phrase, err := updatePhrase.UpgradePhrase(int64(id), req.Text)
+	phrase, err := updatePhrase.UpgradePhrase(int64(id), req.Text, req.CategoryName, req.NewCategoryName)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		logger.Errorf("failed to delete phrase. %s", err)

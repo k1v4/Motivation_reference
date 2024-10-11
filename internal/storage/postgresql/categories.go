@@ -47,6 +47,18 @@ func (s *Storage) GetCategory(id int64) (*Category, error) {
 	return &category, nil
 }
 
+func (s *Storage) GetCategoryName(name string) (*Category, error) {
+	const op = "storage.postgresql.GetCategoryName"
+
+	var category Category
+	err := s.db.QueryRow("SELECT id, name FROM categories WHERE name = $1", name).Scan(&category.Id, &category.Name)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %d", op, err)
+	}
+
+	return &category, nil
+}
+
 func (s *Storage) GetCategories() ([]Category, error) {
 	const op = "storage.postgresql.GetCategories"
 

@@ -1,6 +1,10 @@
 package postgresql
 
-import "fmt"
+import (
+	"Motivation_reference/internal/storage"
+	"errors"
+	"fmt"
+)
 
 type Link struct {
 	PhraseId   int64 `json:"phrase_id"`
@@ -106,8 +110,20 @@ func (s *Storage) DeleteLink(phraseId, categoryId int64) error {
 	return nil
 }
 
-func (s *Storage) UpdateLink(phraseId, categoryId, newCategoryId int64) error {
+func (s *Storage) UpdateLink(phraseId, categoryId int64, newCategoryName string) error {
 	const op = "storage.postgresql.UpdateLink"
+
+	newCategoryId, err := s.AddCategory(newCategoryName)
+	if errors.Is(err, storage.ErrURLExists) {
+		name, err := s.GetCategoryName(newCategoryName)
+		if err != nil {
+			return fmt.Errorf("%s: %d", op, err)
+		}
+
+		newCategoryId = name.Id
+	} else if err != nil {
+		return fmt.Errorf("%s: %d", op, err)
+	}
 
 	stmt, err := s.db.Prepare("UPDATE phrase_categories SET category_id = $1 WHERE phrase_id = $2 AND category_id = $3")
 	if err != nil {

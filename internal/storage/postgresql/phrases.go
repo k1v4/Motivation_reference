@@ -167,7 +167,7 @@ func (s *Storage) DeletePhrase(id int64) error {
 	return nil
 }
 
-func (s *Storage) UpgradePhrase(id int64, newText, newCategory string) (*Phrase, error) {
+func (s *Storage) UpgradePhrase(id int64, newText, category, newCategory string) (*Phrase, error) {
 	const op = "storage.postgresql.UpgradePhrase"
 
 	stmt, err := s.db.Prepare("UPDATE phrases SET text=$1 WHERE id=$2")
@@ -176,6 +176,16 @@ func (s *Storage) UpgradePhrase(id int64, newText, newCategory string) (*Phrase,
 	}
 
 	_, err = stmt.Exec(newText, id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	categoryName, err := s.GetCategoryName(category)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	err = s.UpdateLink(id, categoryName.Id, newCategory)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
