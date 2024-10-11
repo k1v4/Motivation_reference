@@ -74,12 +74,32 @@ func (s *Storage) GetLink(phraseId, categoryId int64) error {
 
 func (s *Storage) DeleteLink(phraseId, categoryId int64) error {
 	const op = "storage.postgresql.DeleteLink"
-	//TODO
+
+	stmt, err := s.db.Prepare("DELETE FROM phrase_categories WHERE phrase_id = $1 AND category_id = $2")
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	_, err = stmt.Exec(phraseId, categoryId)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
 	return nil
 }
 
 func (s *Storage) UpdateLink(phraseId, categoryId, newCategoryId int64) error {
 	const op = "storage.postgresql.UpdateLink"
-	//TODO
+
+	stmt, err := s.db.Prepare("UPDATE phrase_categories SET category_id = $1 WHERE phrase_id = $2 AND category_id = $3")
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	_, err = stmt.Exec(newCategoryId, phraseId, categoryId)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
 	return nil
 }
