@@ -2,6 +2,24 @@ package postgresql
 
 import "fmt"
 
+type Link struct {
+	PhraseId   int64 `json:"phrase_id"`
+	CategoryId int64 `json:"category_id"`
+}
+
+func (s *Storage) GetLink(phraseId, categoryId int64) (*Link, error) {
+	const op = "storage.postgresql.GetLink"
+
+	var link *Link
+
+	err := s.db.QueryRow("SELECT * FROM phrase_categories WHERE phrase_id = $2 AND category_id = $2", phraseId, categoryId).Scan(&link)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return link, nil
+}
+
 func (s *Storage) GetLinkCategories(id int64) ([]Category, error) {
 	const op = "storage.postgresql.GetLinkCategories"
 
@@ -56,8 +74,8 @@ func (s *Storage) GetLinkPhrases(id int64) ([]Phrase, error) {
 	return phrases, nil
 }
 
-func (s *Storage) GetLink(phraseId, categoryId int64) error {
-	const op = "storage.postgresql.GetLink"
+func (s *Storage) AddLink(phraseId, categoryId int64) error {
+	const op = "storage.postgresql.AddLink"
 
 	stmt, err := s.db.Prepare("INSERT INTO phrase_categories VALUES ($1, $2)")
 	if err != nil {
