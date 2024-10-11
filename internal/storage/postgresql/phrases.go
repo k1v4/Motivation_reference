@@ -9,8 +9,9 @@ import (
 )
 
 type Phrase struct {
-	Id   int64  `json:"id"`
-	Text string `json:"text"`
+	Id        int64      `json:"id"`
+	Text      string     `json:"text"`
+	Catgories []Category `json:"categories"`
 }
 
 type Storage struct {
@@ -94,6 +95,11 @@ func (s *Storage) AddPhrase(phraseText, nameCategory string) (int64, int64, erro
 		return lastInsertedPhraseID, lastInsertedCategoryID, fmt.Errorf("%s: %d", op, err)
 	}
 
+	err = s.AddLink(lastInsertedPhraseID, lastInsertedCategoryID)
+	if err != nil {
+		return lastInsertedPhraseID, lastInsertedCategoryID, fmt.Errorf("%s: %d", op, err)
+	}
+
 	return lastInsertedPhraseID, lastInsertedCategoryID, nil
 }
 
@@ -105,6 +111,14 @@ func (s *Storage) GetPhrase(id int64) (*Phrase, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %d", op, err)
 	}
+
+	categories, err := s.GetLinkCategories(id)
+	fmt.Println(categories)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %d", op, err)
+	}
+
+	phrase.Catgories = categories
 
 	return &phrase, nil
 }
@@ -120,9 +134,16 @@ func (s *Storage) GetPhrases() ([]Phrase, error) {
 
 	for rows.Next() {
 		var phrase Phrase
-		if err := rows.Scan(&phrase.Id, &phrase.Text); err != nil {
+		if err = rows.Scan(&phrase.Id, &phrase.Text); err != nil {
 			return nil, fmt.Errorf("%s: %d", op, err)
 		}
+
+		categories, err := s.GetLinkCategories(phrase.Id)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %d", op, err)
+		}
+
+		phrase.Catgories = categories
 
 		phrases = append(phrases, phrase)
 	}
@@ -146,7 +167,7 @@ func (s *Storage) DeletePhrase(id int64) error {
 	return nil
 }
 
-func (s *Storage) UpgradePhrase(id int64, newText string) (*Phrase, error) {
+func (s *Storage) UpgradePhrase(id int64, newText, newCategory string) (*Phrase, error) {
 	const op = "storage.postgresql.UpgradePhrase"
 
 	stmt, err := s.db.Prepare("UPDATE phrases SET text=$1 WHERE id=$2")

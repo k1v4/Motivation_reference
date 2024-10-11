@@ -69,8 +69,9 @@ func New(logger logger.Logger, getPhrase getPhrase, w http.ResponseWriter, r *ht
 	if err := json.NewEncoder(w).Encode(Response{
 		Response: response.OK(),
 		Phrase: postgresql.Phrase{
-			Id:   phrase.Id,
-			Text: phrase.Text,
+			Id:        phrase.Id,
+			Text:      phrase.Text,
+			Catgories: phrase.Catgories,
 		},
 	}); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
