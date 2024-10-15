@@ -12,9 +12,13 @@ type Config struct {
 		Port   string `yaml:"port" env-default:"8080"`
 		BindIp string `yaml:"bind_ip" env-default:"127.0.1"`
 	} `yaml:"listen"`
-	Db struct {
-		ConnString string `yaml:"conn_string"`
-	} `yaml:"DB"`
+	Postgresql struct {
+		Host     string `yaml:"host" env-default:"127.0.0.1"`
+		Port     string `yaml:"port" env-default:"8080"`
+		Username string `yaml:"username"`
+		Password string `yaml:"password"`
+		Database string `yaml:"database"`
+	} `yaml:"postgresql"`
 }
 
 var once sync.Once

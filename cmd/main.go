@@ -8,6 +8,7 @@ import (
 	logger "Motivation_reference/pkg/logger"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 func main() {
@@ -27,10 +28,25 @@ func main() {
 	// DELETE "/api/v1/categories/{id}"
 	// PATCH "/api/v1/categories/{id}"
 
-	storage, err := postgresql.New(cfg.Db.ConnString)
-	if err != nil {
-		logger.Fatal(err)
+	connString := fmt.Sprintf(
+		"postgres://%s:%s@%s:%s/%s",
+		cfg.Postgresql.Username,
+		cfg.Postgresql.Password,
+		cfg.Postgresql.Host,
+		cfg.Postgresql.Port,
+		cfg.Postgresql.Database)
+	var storage *postgresql.Storage
+	var err error
+
+	for i := 0; i < 3; i++ {
+		storage, err = postgresql.New(connString)
+		if err != nil {
+			logger.Error(err)
+			time.Sleep(2 * time.Second)
+		}
 	}
+
+	logger.Info("DB connected")
 
 	http.HandleFunc("/api/v1/phrases", phrases.HandlerWithoutId(logger, storage))
 	http.HandleFunc("/api/v1/phrases/{id}", phrases.HandlerWithId(logger, storage))
